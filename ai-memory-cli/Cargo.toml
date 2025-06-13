@@ -4,3 +4,22 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+# rig-core: The core rig library required to use Rig. We add the derive feature so we can easily implement the Embed trait for structs we want to add as documents into our vector store.
+# rig-mongodb: rig's MongoDB integration.
+# mongodb: The MongoDB Rust SDK.
+# tokio: The Tokio runtime, used for ergonomic access to async Rust. We use the macros feature for access to the #[tokio::main] macro, which allows for convenient async runtime setup.
+# nanoid: A quick, compact and easy way to get random IDs without using UUIDs (via nanoid!(<id-length>)).
+# serde: A de/serialization library. We attach the derive feature to make it easy to implement serialization and deserialization for our structs.
+# serde-json: serde's JSON crate.
+# chrono: A crate for working with time. We use this crate in this project to get UNIX timestamps.
+
+chrono = "0.4.41"
+mongodb = "3.2.3"
+nanoid = "0.4.0"
+rig-core = { version = "0.12.0", features = ["derive"] }
+rig-mongodb = "0.2.10"
+serde = { version = "1.0.219", features = ["derive"] }
+serde_json = "1.0.140"
+tokio = { version = "1.45.1", features = ["macros"] }
+futures = "0.3.31"
+schemars = "0.8.22"
