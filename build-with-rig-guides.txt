@@ -1,2 +1,6 @@
 https://rig.rs/build-with-rig-guide.html
+ai-memory-cli
+https://dev.to/joshmo_dev/creating-ai-memories-using-rig-mongodb-2pg7
+ai-flight-search
+https://dev.to/0thtachi/build-a-flight-search-ai-agent-with-rust-using-rig-a-hands-on-practical-guide-54dm
 
