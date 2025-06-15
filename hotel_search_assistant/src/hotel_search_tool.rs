@@ -1,18 +1,16 @@
-use crate::location_search::get_location;
-use crate::model::{
-    ApiError, ApiResponse, HotelSearchArgs, HotelSearchData,
-};
-use chrono::{Duration, Utc};
+use crate::model::{ApiError, ApiResponse, HotelSearchArgs, HotelSearchData};
+use crate::utils::parse_and_infer_year;
+use chrono::{Duration, Local, Utc};
 use rig::completion::ToolDefinition;
 use rig::tool::Tool;
-use serde_json::{json};
+use serde_json::json;
 use std::collections::HashMap;
 use std::env;
 
-pub struct LocationSearchTool;
+pub struct HotelSearchTool;
 
-impl Tool for LocationSearchTool {
-    const NAME: &'static str = "search_location";
+impl Tool for HotelSearchTool {
+    const NAME: &'static str = "search_hotel";
     type Error = HotelSearchError;
     type Args = HotelSearchArgs;
     type Output = String;
@@ -20,59 +18,64 @@ impl Tool for LocationSearchTool {
     async fn definition(&self, _prompt: String) -> ToolDefinition {
         ToolDefinition {
             name: Self::NAME.to_string(),
-            description: "Search for location based on the city name".to_string(),
+            description: "Search for hotel based on the give parameters and location".to_string(),
             parameters: json!({
-                  "type": "object",
-                  "properties": {
-                      "query": {"type": "string"},
-            /*      "geoId": {
-                      "type": "integer",
-                      "description": "The geographic ID of the location to search in. Obtained from LocationSearchTool."
-                  },*/
-                  "checkIn": {
-                      "type": "string",
-                      "description": "The check-in date for the hotel search, in YYYY-MM-DD format."
-                  },
-                  "checkOut": {
-                      "type": "string",
-                      "description": "The check-out date for the hotel search, in YYYY-MM-DD format."
-                  },
-                  "adults": {
-                      "type": "integer",
-                      "description": "The number of adults staying."
-                  },
-                  "childrenAges": { // This should match your Vec<u32>
-                      "type": "array",
-                      "items": {"type": "integer"},
-                      "description": "A comma-separated list of children's ages, if any."
-                  },
-                  "rooms": {
-                      "type": "integer",
-                      "description": "The number of rooms needed."
-                  },
-              },
-              "required": ["query", "checkIn", "checkOut", "adults"],
-                  }),
+                            "type": "object",
+                            "properties": {
+                                "query": {"type": "string"},
+                            "geoId": {
+                                "type": "integer",
+                                "description": "The geographic ID of the location to search in. Obtained from LocationSearchTool."
+                            },
+                            "checkIn": {
+                                "type": "string",
+                                 "description": "The check-in date. Can be YYYY-MM-DD (e.g., 2025-08-08) or MM-DD / Month Day (e.g., 08-08 or August 8th). If the year is omitted, the program will infer the next upcoming occurrence of that date."
+                            },
+                            "checkOut": {
+                                "type": "string",
+                                "description": "The check-out date. Can be YYYY-MM-DD (e.g., 2025-08-14) or MM-DD / Month Day (e.g., 08-14 or August 14th). If the year is omitted, the program will infer the next upcoming occurrence of that date."
+                             },
+                            "adults": {
+                                "type": "integer",
+                                "description": "The number of adults staying."
+                            },
+                            "childrenAges": { // This should match your Vec<u32>
+                                "type": "array",
+                                "items": {"type": "integer"},
+                                "description": "A comma-separated list of children's ages, if any."
+                            },
+                            "rooms": {
+                                "type": "integer",
+                                "description": "The number of rooms needed."
+                            },
+                        },
+                        "required": ["query", "checkIn", "checkOut", "adults"],
+                            }),
         }
     }
-async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
+    async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
         // Fetch the API Key
         let api_key = env::var("RAPIDAPI_KEY").map_err(|_| HotelSearchError::MissingApiKey)?;
-        let location_opt = get_location(args.clone(), api_key.clone()).await?;
-        println!("get_location returned: {:?}", location_opt);
-        let location = location_opt.ok_or(HotelSearchError::InvalidResponse)?;
+        let today = Local::now().date_naive(); // Get today's date
         // Build Query Parameters
-        let check_in = args
-            .check_in
-            .unwrap_or_else(|| (Utc::now() + Duration::days(1)).date_naive().to_string());
-        let check_out = args
-            .check_out
-            .unwrap_or_else(|| (Utc::now() + Duration::days(7)).date_naive().to_string());
+        let check_in_date = if let Some(ci_str) = args.check_in {
+            parse_and_infer_year(&ci_str, today)? // Custom parsing function
+        } else {
+            today + Duration::days(1) // Default to tomorrow
+        };
+
+        let check_out_date = if let Some(co_str) = args.check_out {
+            parse_and_infer_year(&co_str, today)? // Custom parsing function
+        } else {
+            check_in_date + Duration::days(1) // Default to day after check-in
+        };
+        let check_in = check_in_date.format("%Y-%m-%d").to_string();
+        let check_out = check_out_date.format("%Y-%m-%d").to_string();
         let adults = args.adults.unwrap_or_else(|| 1);
         let children_ages = args.children_ages.unwrap_or_else(|| Vec::new());
 
         let mut query_params = HashMap::new();
-        query_params.insert("geoId", location.geo_id.to_string());
+        query_params.insert("geoId", args.geo_id.to_string());
         query_params.insert("checkIn", check_in);
         query_params.insert("checkOut", check_out);
         query_params.insert("adults", adults.to_string());
@@ -85,7 +88,11 @@ async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
                 .join(","),
         );
         query_params.insert("rooms", args.rooms.map_or(String::new(), |v| v.to_string()));
-        println!("Sending query params to Tripadvisor: {:?}", query_params);
+        println!(
+            "Sending query params to Tripadvisor:\n{}",
+            serde_json::to_string_pretty(&query_params)
+                .unwrap_or_else(|_| format!("{:?}", query_params))
+        );
         // Make the API Request
         let client = reqwest::Client::new();
         let response = client
@@ -111,7 +118,7 @@ async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
             .map_err(|e| HotelSearchError::HttpRequestFailed(e.to_string()))?;
 
         // Check if the HTTP status code indicates success (2xx range)
-        if status.is_success() {
+        if !status.is_success() {
             // It's an HTTP error (e.g., 400, 500). Try to parse the error body.
             let api_error: ApiError = serde_json::from_str(&raw_text).map_err(|e| {
                 // If the error response itself can't be parsed, log original text
@@ -143,52 +150,43 @@ async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
             })?;
 
         let mut output = String::new();
-        output.push_str("Here are some hotel options:\n\n");
+        output.push_str("🏨 Here are some hotel options:\n\n");
 
-        // Check if there are any hotels returned
         if response_data.data.data.is_empty() {
             output.push_str("No hotels found matching your criteria.");
         } else {
             for (i, option) in response_data.data.data.iter().enumerate() {
-                output.push_str(&format!("{}. **{}**\n", i + 1, option.title));
+                output.push_str(&format!("{}. {}\n", i + 1, option.title));
 
                 if let Some(rating) = &option.bubble_rating {
                     output.push_str(&format!(
-                        "  Rating: {}/5 ({} reviews)\n",
+                        "   Rating: {}★ ({} reviews)\n",
                         rating.rating, rating.count
                     ));
                 }
 
                 if let Some(info) = &option.primary_info {
-                    output.push_str(&format!("  Features: {}\n", info));
+                    output.push_str(&format!("   • Features: {}\n", info));
                 }
                 if let Some(info) = &option.secondary_info {
-                    output.push_str(&format!("  Location: {}\n", info));
+                    output.push_str(&format!("   • Location: {}\n", info));
                 }
 
-                // Handle price, which is often null in these APIs
                 if let Some(price) = &option.price_for_display {
-                    output.push_str(&format!("  Price: {}\n", price));
+                    output.push_str(&format!("   • Price: {}\n", price));
+                } else if let Some(provider) = &option.provider {
+                    output.push_str(&format!(
+                        "   • Price: Not available directly. Check on {}.\n",
+                        provider
+                    ));
                 } else {
-                    // Check if provider exists to suggest where to check
-                    if let Some(provider) = &option.provider {
-                        output.push_str(&format!(
-                            "  Price: Not available directly. Check on {}.\n",
-                            provider
-                        ));
-                    } else {
-                        output.push_str(
-                            "  Price: Not available directly. Please check provider websites.\n",
-                        );
-                    }
+                    output.push_str("   • Price: Not available. Please check provider websites.\n");
                 }
 
-                output.push_str("\n"); // Add a blank line between hotels
+                output.push('\n');
 
-                // Limit output to, say, the top 5 hotels for brevity for the LLM
                 if i >= 4 {
-                    // Display up to 5 hotels
-                    output.push_str("...and more options available if you'd like to see them.\n");
+                    output.push_str("...and more options available.\n");
                     break;
                 }
             }
@@ -202,8 +200,8 @@ async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
 pub enum HotelSearchError {
     #[error("HTTP request failed: {0}")]
     HttpRequestFailed(String),
-    #[error("Invalid response structure")]
-    InvalidResponse,
+    #[error("Invalid response structure: {0}")]
+    InvalidResponse(String),
     #[error("API error: {0}")]
     ApiError(String),
     #[error("Missing API key")]

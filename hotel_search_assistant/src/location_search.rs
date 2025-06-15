@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use crate::hotel_search_tool::HotelSearchError;
-use crate::model::{HotelSearchArgs, ApiResponse, LocationOption};
+use crate::model::{LocationSearchArgs, ApiResponse, LocationOption};
 
-pub async fn get_location(args: HotelSearchArgs, api_key: String) -> Result<Option<LocationOption>, HotelSearchError> {
+pub async fn get_location_from_api(args: LocationSearchArgs, api_key: String) -> Result<Option<LocationOption>, HotelSearchError> {
 
     let mut query_params = HashMap::new();
     query_params.insert("query", args.query);

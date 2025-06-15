@@ -2,9 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Deserialize)]
 pub struct HotelSearchArgs {
-    pub query: String,
-   // #[serde(rename = "geoId")]
-   // pub geo_id: u64,
+    #[serde(rename = "geoId")]
+    pub geo_id: u64,
     #[serde(rename = "checkIn")]
     pub check_in: Option<String>,
     #[serde(rename = "checkOut")]
@@ -15,8 +14,14 @@ pub struct HotelSearchArgs {
     pub rooms: Option<u32>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocationSearchArgs {
+    pub query: String, // This is what the LLM will provide (e.g., "Vancouver, BC")
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct LocationOption {
+
     title: String,
     #[serde(rename = "geoId")]
     pub geo_id: u64,
@@ -27,6 +32,14 @@ pub struct LocationOption {
     #[serde(rename = "secondaryText")]
     secondary_text: String,
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LocationSearchResult {
+    #[serde(rename = "geoId")]
+    pub geo_id: u64,
+    pub location_name: String, // So the LLM knows what it found
+}
+
 
 #[derive(Debug, Deserialize)]
 pub(crate) struct ApiResponse<T> {
