@@ -2,3 +2,4 @@
 /ai-memory-cli/target/
 /flight_search_assistant/.env
 /hotel_search_assistant/.env
+/text_classifier/.env

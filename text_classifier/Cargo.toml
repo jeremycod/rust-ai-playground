@@ -1,0 +1,13 @@
+[package]
+name = "text_classifier"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+rig-core = "0.13.0"
+tokio = { version = "1.45", features = ["full"] }
+anyhow = "1.0.98"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.140"
+dotenv = "0.15.0"
+schemars = "0.8.22"
