@@ -1,4 +1,4 @@
-use chrono::{DateTime, Duration, Utc};
+use chrono::{Duration, Utc};
 use rig::completion::ToolDefinition;
 use rig::tool::Tool;
 use serde::{Deserialize, Serialize};
@@ -115,10 +115,10 @@ impl Tool for FlightSearchTool {
             .await
             .map_err(|e| FlightSearchError::HttpRequestFailed(e.to_string()))?;
 
-        let data: Value = serde_json::from_str(&text)
+        let _data: Value = serde_json::from_str(&text)
             .map_err(|e| FlightSearchError::HttpRequestFailed(e.to_string()))?;
 
-        let mut flight_options: Vec<FlightOption> = Vec::new();
+        let flight_options: Vec<FlightOption> = Vec::new();
 
         // Here, we need to extract the flight options. (It's quite detailed, so we've omitted the full code to keep the focus clear.)
 

@@ -1,5 +1,6 @@
 use mongodb::{bson, Collection};
 use mongodb::bson::doc;
+use rig::client::CompletionClient;
 use rig::providers::openai::{Client, EmbeddingModel};
 use rig::completion::Message;
 use rig::embeddings::EmbeddingsBuilder;

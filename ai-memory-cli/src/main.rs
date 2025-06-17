@@ -1,3 +1,4 @@
+use rig::client::{CompletionClient, EmbeddingsClient};
 mod memory;
 mod db;
 mod summarize;
@@ -11,6 +12,7 @@ use rig::completion::{Chat, Message};
 use rig::providers::openai::{Client, EmbeddingModel};
 use rig::embeddings::EmbeddingModel as EmbeddingModelTrait;
 use futures::stream::TryStreamExt;
+use rig::client::ProviderClient;
 
 fn take_user_input() -> String {
     let mut string = String::new();

@@ -3,3 +3,4 @@
 /flight_search_assistant/.env
 /hotel_search_assistant/.env
 /text_classifier/.env
+/semantic-router/.env
