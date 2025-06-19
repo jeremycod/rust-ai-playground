@@ -3,4 +3,10 @@ ai-memory-cli
 https://dev.to/joshmo_dev/creating-ai-memories-using-rig-mongodb-2pg7
 ai-flight-search
 https://dev.to/0thtachi/build-a-flight-search-ai-agent-with-rust-using-rig-a-hands-on-practical-guide-54dm
+Semantic Routing with Qdrant, Rig & Rust
+https://dev.to/joshmo_dev/semantic-routing-with-qdrant-rig-rust-mj4
 
+https://www.shuttle.dev/blog/2025/01/08/arxiv-rig-rust
+https://www.shuttle.dev/blog/2024/05/23/building-agentic-rag-rust-qdrant
+https://www.shuttle.dev/blog/2024/05/01/using-huggingface-rust
+https://www.shuttle.dev/blog/2025/01/29/discord-summarizer-deepseek-rig-rust

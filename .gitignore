@@ -4,3 +4,4 @@
 /hotel_search_assistant/.env
 /text_classifier/.env
 /semantic-router/.env
+/arxiv-rig-rust/.env
