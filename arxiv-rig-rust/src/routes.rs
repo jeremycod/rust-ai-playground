@@ -2,8 +2,6 @@ use std::sync::Arc;
 use axum::extract::State;
 use axum::Json;
 use axum::response::{Html, IntoResponse};
-use serde::Deserialize;
-//use serde_json::ser::State;
 use rig::providers::openai::GPT_4;
 use rig::client::CompletionClient;
 use rig::completion::Prompt;
@@ -21,7 +19,7 @@ pub(crate) async fn search_papers(
         .preamble(
             "You are a helpful research assistant that can search and analyze academic papers from arXiv. \
              When asked about a research topic, use the search_arxiv tool to find relevant papers and \
-             return only the raw JSON response from the tool."
+             return only the raw JSON response from the tool, with no extra commentary or formatting."
         )
         .tool(ArxivSearchTool)
         .build();
@@ -37,7 +35,10 @@ pub(crate) async fn search_papers(
 
     let html = match papers {
         Ok(papers) => util::format_papers_as_html(&papers)?,
-        Err(_) => response, // fallback: just show the raw response
+        Err(_) => format!(
+            "<div style=\"white-space: pre-wrap; font-family: monospace;\">{}</div>",
+            html_escape::encode_text(&response)
+        ),
     };
 
     Ok(Html(html))

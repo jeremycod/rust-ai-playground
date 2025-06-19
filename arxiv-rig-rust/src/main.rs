@@ -1,19 +1,15 @@
 use std::sync::Arc;
-use anyhow::Context;
-use axum::extract::State;
 use axum::response::{Html, IntoResponse};
-use axum::{Json, Router};
+use axum::{Router};
 use axum::routing::{get, post};
 
-use rig::completion::Prompt;
 use dotenv::dotenv;
-use rig::client::{CompletionClient, ProviderClient};
+use rig::client::{ProviderClient};
 use rig::providers::openai::{Client};
 use tokio::net::TcpListener;
-use crate::model::{AppState, ArxivSearchTool, Paper};
+use crate::model::AppState;
 use tower_http::cors::{CorsLayer, Any};
 use tracing::info;
-use crate::error::AppError;
 
 mod model;
 mod error;
