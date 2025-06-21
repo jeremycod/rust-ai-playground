@@ -6,7 +6,6 @@ use rig::{embeddings::EmbeddingsBuilder, providers::openai::{Client, EmbeddingMo
 use rig_qdrant::QdrantVectorStore;
 use qdrant_client::{qdrant::{CreateCollectionBuilder, PointStruct, QueryPointsBuilder, VectorParamsBuilder}, Payload, Qdrant};
 use qdrant_client::qdrant::UpsertPointsBuilder;
-//use rig::client::embeddings::EmbeddingsClientDyn;
 use rig::vector_store::VectorStoreIndex;
 use crate::topics::Utterance;
 

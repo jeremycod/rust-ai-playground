@@ -5,3 +5,4 @@
 /text_classifier/.env
 /semantic-router/.env
 /arxiv-rig-rust/.env
+/agentic-rag-rust-qdrant/.env
