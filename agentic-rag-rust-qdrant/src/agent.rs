@@ -1,7 +1,6 @@
 use std::sync::Arc;
-use std::io::Error;
 use crate::file::File;
-use async_openai::types::{ChatCompletionRequestMessage, ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequest, CreateChatCompletionRequestArgs, CreateEmbeddingRequest, EmbeddingInput};
+use async_openai::types::{ChatCompletionRequestMessage, ChatCompletionRequestSystemMessageArgs, ChatCompletionRequestUserMessageArgs, CreateChatCompletionRequestArgs, CreateEmbeddingRequest, EmbeddingInput};
 use async_openai::{Client as OpenAIClient, Embeddings, config::OpenAIConfig};
 use qdrant_client::qdrant::PointStruct;
 use qdrant_client::{Payload, Qdrant};
